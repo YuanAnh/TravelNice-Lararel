@@ -11,14 +11,16 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Admin
-        User::create([
-            'name'              => 'Admin TravelNice',
-            'email'             => 'admin@travelnice.vn',
-            'phone'             => '0901234567',
-            'password'          => Hash::make('password'),
-            'status'            => 'active',
-            'email_verified_at' => now(),
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@travelnice.vn'],
+            [
+                'name'              => 'Admin TravelNice',
+                'phone'             => '0901234567',
+                'password'          => Hash::make('password'),
+                'status'            => 'active',
+                'email_verified_at' => now(),
+            ]
+        );
 
         // Khách hàng mẫu
         $users = [
@@ -30,12 +32,15 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $user) {
-            User::create([
-                ...$user,
-                'password'          => Hash::make('password'),
-                'status'            => 'active',
-                'email_verified_at' => now(),
-            ]);
+            User::firstOrCreate(
+                ['email' => $user['email']],
+                [
+                    ...$user,
+                    'password'          => Hash::make('password'),
+                    'status'            => 'active',
+                    'email_verified_at' => now(),
+                ]
+            );
         }
     }
 }

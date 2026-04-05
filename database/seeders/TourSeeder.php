@@ -93,36 +93,41 @@ class TourSeeder extends Seeder
         ];
 
         foreach ($tours as $tourData) {
-            $tour = Tour::create($tourData);
+            // firstOrCreate theo slug (unique)
+            $tour = Tour::firstOrCreate(
+                ['slug' => $tourData['slug']],
+                $tourData
+            );
 
-            // Tạo lịch slot khởi hành
-            $dates = [
-                now()->addDays(10),
-                now()->addDays(20),
-                now()->addDays(30),
-                now()->addDays(45),
-            ];
+            // Chỉ tạo slots/schedules nếu tour vừa được tạo mới
+            if ($tour->wasRecentlyCreated) {
+                $dates = [
+                    now()->addDays(10),
+                    now()->addDays(20),
+                    now()->addDays(30),
+                    now()->addDays(45),
+                ];
 
-            foreach ($dates as $date) {
-                TourSlot::create([
-                    'tour_id'        => $tour->id,
-                    'departure_date' => $date->format('Y-m-d'),
-                    'total_slots'    => $tour->max_slots,
-                    'booked_slots'   => rand(0, (int)($tour->max_slots * 0.6)),
-                    'status'         => 'open',
-                ]);
-            }
+                foreach ($dates as $date) {
+                    TourSlot::create([
+                        'tour_id'        => $tour->id,
+                        'departure_date' => $date->format('Y-m-d'),
+                        'total_slots'    => $tour->max_slots,
+                        'booked_slots'   => rand(0, (int)($tour->max_slots * 0.6)),
+                        'status'         => 'open',
+                    ]);
+                }
 
-            // Tạo lịch trình mẫu
-            for ($day = 1; $day <= $tour->duration_days; $day++) {
-                TourSchedule::create([
-                    'tour_id'       => $tour->id,
-                    'day_number'    => $day,
-                    'title'         => "Ngày $day: Khám phá điểm đến",
-                    'description'   => "Chương trình tham quan ngày $day của tour.",
-                    'meals'         => 'Sáng, Trưa, Tối',
-                    'accommodation' => 'Khách sạn 3-4 sao',
-                ]);
+                for ($day = 1; $day <= $tour->duration_days; $day++) {
+                    TourSchedule::create([
+                        'tour_id'       => $tour->id,
+                        'day_number'    => $day,
+                        'title'         => "Ngày $day: Khám phá điểm đến",
+                        'description'   => "Chương trình tham quan ngày $day của tour.",
+                        'meals'         => 'Sáng, Trưa, Tối',
+                        'accommodation' => 'Khách sạn 3-4 sao',
+                    ]);
+                }
             }
         }
     }

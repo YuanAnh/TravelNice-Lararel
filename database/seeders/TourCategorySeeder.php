@@ -19,7 +19,10 @@ class TourCategorySeeder extends Seeder
         ];
 
         foreach ($categories as $cat) {
-            TourCategory::create($cat);
+            TourCategory::firstOrCreate(
+                ['slug' => $cat['slug']],
+                $cat
+            );
         }
     }
 }
