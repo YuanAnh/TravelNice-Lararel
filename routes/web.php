@@ -9,6 +9,11 @@ Route::get('/', function () {
     return view('home');
 });
 
+// Breeze redirect sau login/register về đây
+Route::get('/dashboard', function () {
+    return redirect()->route('profile.index');
+})->middleware('auth')->name('dashboard');
+
 // Tours
 Route::get('/tours', [TourController::class, 'index'])->name('tours.index');
 Route::get('/tours/{tour:slug}', [TourController::class, 'show'])->name('tours.show');
@@ -19,11 +24,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::patch('/bookings/{booking}/cancel', [ProfileController::class, 'cancelBooking'])->name('bookings.cancel');
 
-    // Profile — override Breeze's profile routes
+    // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-
-    // Redirect Breeze's profile.edit → profile.index
     Route::get('/profile/edit', fn() => redirect()->route('profile.index'))->name('profile.edit');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
