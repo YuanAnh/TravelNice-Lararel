@@ -8,14 +8,37 @@ use Illuminate\Http\Request;
 
 class BookingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $bookings = Booking::with(['user', 'tour'])->latest()->paginate(20);
-        return view('admin.bookings.index', compact('bookings'));
+        $query = Booking::with(['user', 'tourSlot.tour'])->latest();
+
+        if ($q = $request->q) {
+            $query->where(function ($q2) use ($q) {
+                $q2->where('booking_code', 'like', "%$q%")
+                   ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%$q%")
+                       ->orWhere('phone', 'like', "%$q%"));
+            });
+        }
+
+        if ($status = $request->status) {
+            $query->where('status', $status);
+        }
+
+        $bookings = $query->paginate(20);
+
+        $stats = [
+            'pending'   => Booking::where('status', 'pending')->count(),
+            'confirmed' => Booking::where('status', 'confirmed')->count(),
+            'paid'      => Booking::where('status', 'paid')->count(),
+            'cancelled' => Booking::where('status', 'cancelled')->count(),
+        ];
+
+        return view('admin.bookings.index', compact('bookings', 'stats'));
     }
 
     public function show(Booking $booking)
     {
+        $booking->load(['user', 'tourSlot.tour.destination']);
         return view('admin.bookings.show', compact('booking'));
     }
 
@@ -27,17 +50,32 @@ class BookingController extends Controller
     public function update(Request $request, Booking $booking)
     {
         $request->validate([
-            'status' => 'required|in:pending,confirmed,cancelled',
+            'status'          => 'required|in:pending,paid,confirmed,cancelled,completed',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'note'            => 'nullable|string',
         ]);
 
-        $booking->update($request->only('status'));
+        $data = ['status' => $request->status];
 
-        return redirect()->route('admin.bookings.index')->with('success', 'Cập nhật booking thành công.');
+        if ($request->filled('discount_amount')) {
+            $data['discount_amount'] = $request->discount_amount;
+        }
+        if ($request->filled('note')) {
+            $data['note'] = $request->note;
+        }
+        if ($request->status === 'cancelled' && !$booking->cancelled_at) {
+            $data['cancelled_at'] = now();
+        }
+
+        $booking->update($data);
+
+        return redirect()->route('admin.bookings.show', $booking)
+                         ->with('success', 'Cập nhật booking thành công!');
     }
 
     public function destroy(Booking $booking)
     {
         $booking->delete();
-        return redirect()->route('admin.bookings.index')->with('success', 'Đã xoá booking.');
+        return redirect()->route('admin.bookings.index')->with('success', 'Đã xoá booking!');
     }
 }
