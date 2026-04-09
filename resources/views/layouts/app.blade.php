@@ -92,6 +92,7 @@
             content: '';
             position: absolute; inset: 0;
             background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
         }
         .tn-hero h1 {
             color: #fff; font-size: 32px; font-weight: 700;
@@ -295,10 +296,10 @@
                         <i class="bi bi-map"></i> Tour du lịch
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-globe-asia-australia text-primary"></i> Du lịch nước ngoài</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-geo-alt text-success"></i> Du lịch trong nước</a></li>
+                        <li><a class="dropdown-item" href="{{ route('tours.index', ['duration[]' => '7-10']) }}"><i class="bi bi-globe-asia-australia text-primary"></i> Du lịch nước ngoài</a></li>
+                        <li><a class="dropdown-item" href="{{ route('tours.index', ['duration[]' => '1-3']) }}"><i class="bi bi-geo-alt text-success"></i> Du lịch trong nước</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-fire text-danger"></i> Tour HOT giảm giá</a></li>
+                        <li><a class="dropdown-item" href="{{ route('tours.index', ['sort' => 'popular']) }}"><i class="bi bi-fire text-danger"></i> Tour HOT giảm giá</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">
@@ -320,9 +321,9 @@
                             {{ Str::limit(auth()->user()->name, 12) }}
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Hồ sơ của tôi</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-calendar-check"></i> Đơn đặt tour</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-heart"></i> Yêu thích</a></li>
+                            <li><a class="dropdown-item" href="{{ route('profile.index') }}"><i class="bi bi-person"></i> Hồ sơ của tôi</a></li>
+                            <li><a class="dropdown-item" href="{{ route('profile.index') }}#bookings"><i class="bi bi-calendar-check"></i> Đơn đặt tour</a></li>
+                            <li><a class="dropdown-item" href="{{ route('profile.index') }}#wishlist"><i class="bi bi-heart"></i> Yêu thích</a></li>
                             @if(auth()->user()->hasRole('admin'))
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-primary" href="{{ route('admin.dashboard') }}"><i class="bi bi-shield-check"></i> Quản trị</a></li>
@@ -397,7 +398,7 @@
             <div class="col-lg-4">
                 <h6>Liên hệ</h6>
                 <p class="footer-desc mb-2"><i class="bi bi-geo-alt me-2"></i>Đường Phan Tây Nhạc, Xuân Phương, Hà Nội</p>
-                <p class="footer-desc mb-2"><i class="bi bi-telephone me-2"></i>024 3555 2008</p>
+                <p class="footer-desc mb-2"><i class="bi bi-telephone me-2"></i>097 8023 211</p>
                 <p class="footer-desc mb-2"><i class="bi bi-envelope me-2"></i>support@travelnice.vn</p>
                 <p class="footer-desc"><i class="bi bi-clock me-2"></i>8:00 – 22:00 (Thứ 2 – Chủ nhật)</p>
             </div>

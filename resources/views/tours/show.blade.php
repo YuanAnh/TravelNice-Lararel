@@ -66,7 +66,7 @@
             <div class="tour-gallery mb-4">
                 <div class="main-img">
                     <img id="mainImg"
-                        src="{{ $tour->thumbnail ?? 'https://placehold.co/800x400/0066CC/white?text=Tour' }}"
+                        src="{{ $tour->thumbnail ? asset('storage/'.$tour->thumbnail) : 'https://placehold.co/800x400/0066CC/white?text=Tour' }}"
                         alt="{{ $tour->title }}">
                 </div>
                 @if($tour->images->count())

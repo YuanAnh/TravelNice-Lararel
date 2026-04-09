@@ -172,8 +172,8 @@
             @forelse($tours as $tour)
             <div class="tour-list-card">
                 <div class="card-img">
-                    <img src="{{ $tour->thumbnail ?? 'https://placehold.co/240x180/0066CC/white?text=Tour' }}"
-                         alt="{{ $tour->title }}">
+                    <img src="{{ $tour->thumbnail ? asset('storage/'.$tour->thumbnail) : 'https://placehold.co/240x180/0066CC/white?text=Tour' }}"
+                        alt="{{ $tour->title }}">
                     @if($loop->index < 3)<span class="badge-hot">HOT</span>@endif
                 </div>
                 <div class="card-body">

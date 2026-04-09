@@ -57,7 +57,7 @@
                     <td style="color:#9CA3AF">{{ $tour->id }}</td>
                     <td>
                         <div class="d-flex align-items-center gap-3">
-                            <img src="{{ $tour->thumbnail ?? 'https://placehold.co/56x42/0066CC/white?text=Tour' }}"
+                            <img src="{{ $tour->thumbnail ? asset('storage/'.$tour->thumbnail) : 'https://placehold.co/56x42/0066CC/white?text=Tour' }}"
                                  class="tour-thumb" alt="">
                             <div class="tour-name">
                                 {{ Str::limit($tour->title, 40) }}
