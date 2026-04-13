@@ -206,8 +206,13 @@
                             <div class="price-new">{{ number_format($tour->price_adult, 0, ',', '.') }}đ <small>/người</small></div>
                         </div>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-secondary" title="Yêu thích">
-                                <i class="bi bi-heart"></i>
+                            <button class="btn btn-sm btn-outline-secondary" title="Yêu thích"
+                                    onclick="toggleWishlist(this, {{ $tour->id }})">
+                                    @auth
+                                    <i class="bi bi-heart{{ auth()->user()->wishlistedTours->contains($tour->id) ? '-fill text-danger' : '' }}"></i>
+                                    @else
+                                    <i class="bi bi-heart"></i>
+                                    @endauth
                             </button>
                             <a href="{{ route('tours.show', $tour->slug) }}" class="btn btn-sm btn-primary px-3">
                                 Xem chi tiết
@@ -233,5 +238,21 @@
         </div>
     </div>
 </div>
-
+@push('scripts')
+    <script>
+        function toggleWishlist(btn, tourId) {
+            @auth
+            fetch('{{ url("/wishlist") }}/' + tourId, {
+                method: 'POST',
+                headers: {'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content}
+            }).then(r => r.json()).then(data => {
+                const icon = btn.querySelector('i');
+                icon.className = data.wishlisted ? 'bi bi-heart-fill text-danger' : 'bi bi-heart';
+            }).catch(() => {});
+            @else
+            window.location = '{{ route("login") }}';
+            @endauth
+        }
+    </script>
+@endpush
 @endsection

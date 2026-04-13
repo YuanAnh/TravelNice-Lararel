@@ -63,12 +63,21 @@ class TourController extends Controller
         $categories   = TourCategory::withCount('tours')->get();
         $destinations = Destination::orderBy('name')->get();
 
+        if (auth()->check()) {
+            auth()->user()->load('wishlistedTours');
+        }
+
         return view('tours.index', compact('tours', 'categories', 'destinations'));
     }
 
     public function show(Tour $tour)
     {
         $tour->load(['destination', 'category', 'images', 'schedules', 'slots', 'reviews.user']);
+
+        if (auth()->check()) {
+            auth()->user()->load('wishlistedTours');
+        }
+
         return view('tours.show', compact('tour'));
     }
 }

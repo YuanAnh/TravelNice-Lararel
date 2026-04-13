@@ -311,6 +311,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#"><i class="bi bi-gift"></i> Combo khuyến mại</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('ai.recommend') }}">
+                        <i class="bi bi-stars"></i> Gợi ý AI
+                    </a>
+                </li>
             </ul>
 
             <div class="nav-actions">
@@ -411,12 +416,7 @@
 </footer>
 
 {{-- Chat widget --}}
-<div class="tn-chat-widget">
-    <div class="tn-chat-bubble">💬 Tư vấn AI miễn phí</div>
-    <button class="tn-chat-btn mt-2">
-        <i class="bi bi-chat-dots-fill"></i>
-    </button>
-</div>
+@include('components.chat-widget')
 
 {{-- Bootstrap JS --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

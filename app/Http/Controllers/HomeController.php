@@ -17,6 +17,10 @@ class HomeController extends Controller
 
         $categories = TourCategory::orderBy('name')->get();
 
+        if (auth()->check()) {
+        auth()->user()->load('wishlistedTours');
+        }
+
         return view('home', compact('featuredTours', 'categories'));
     }
 }

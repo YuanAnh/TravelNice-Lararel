@@ -129,7 +129,11 @@
                         <img src="{{ $tour->thumbnail ? asset('storage/'.$tour->thumbnail) : 'https://placehold.co/400x240/0066CC/white?text='.urlencode($tour->destination->name??'Tour') }}" alt="{{ $tour->title }}">
                         @if($loop->index < 2)<span class="badge-hot">HOT</span>@endif
                         <button class="btn-wishlist" onclick="toggleWishlist(this, {{ $tour->id }})">
+                            @auth
+                            <i class="bi bi-heart{{ auth()->user()->wishlistedTours->contains($tour->id) ? '-fill text-danger' : '' }}"></i>
+                            @else
                             <i class="bi bi-heart"></i>
+                            @endauth
                         </button>
                     </div>
                     <div class="card-body">
@@ -213,7 +217,7 @@
 <script>
 function toggleWishlist(btn, tourId) {
     @auth
-    fetch('/wishlist/' + tourId, {
+    fetch('{{ url("/wishlist") }}/' + tourId, {
         method: 'POST',
         headers: {'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content}
     }).then(r => r.json()).then(data => {

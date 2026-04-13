@@ -203,7 +203,7 @@
                         <div class="profile-card-title"><i class="bi bi-heart"></i> Tour yêu thích</div>
                         @forelse($wishlists as $tour)
                         <div class="d-flex gap-3 align-items-center border rounded-3 p-3 mb-3">
-                            <img src="{{ $tour->thumbnail ?? 'https://placehold.co/80x60/0066CC/white?text=Tour' }}"
+                            <img src="{{ $tour->thumbnail ? asset('storage/'.$tour->thumbnail) : 'https://placehold.co/80x60/0066CC/white?text=Tour' }}"
                                  style="width:80px;height:60px;object-fit:cover;border-radius:8px">
                             <div class="flex-grow-1">
                                 <a href="{{ route('tours.show', $tour->slug) }}" class="fw-600 text-decoration-none" style="font-size:14px">{{ $tour->title }}</a>

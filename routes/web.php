@@ -1,14 +1,17 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TourController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\TourController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\AiController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\WishlistController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Breeze redirect sau login/register về đây
 Route::get('/dashboard', function () {
     return redirect()->route('profile.index');
 })->middleware('auth')->name('dashboard');
@@ -17,11 +20,27 @@ Route::get('/dashboard', function () {
 Route::get('/tours', [TourController::class, 'index'])->name('tours.index');
 Route::get('/tours/{tour:slug}', [TourController::class, 'show'])->name('tours.show');
 
+// AI (public)
+Route::post('/ai/chat', [AiController::class, 'chat'])->name('ai.chat');
+Route::match(['get','post'], '/ai/recommend', [AiController::class, 'recommend'])->name('ai.recommend');
+
 // Auth required
 Route::middleware('auth')->group(function () {
     // Booking
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::patch('/bookings/{booking}/cancel', [ProfileController::class, 'cancelBooking'])->name('bookings.cancel');
+
+    // Payment
+    Route::get('/payment/{booking}', [PaymentController::class, 'select'])->name('payment.select');
+    Route::get('/payment/{booking}/vnpay', [PaymentController::class, 'payVNPay'])->name('payment.vnpay');
+    Route::get('/payment/{booking}/momo', [PaymentController::class, 'payMoMo'])->name('payment.momo');
+
+    // Reviews
+    Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // Wishlist
+    Route::post('/wishlist/{tour}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
@@ -29,5 +48,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', fn() => redirect()->route('profile.index'))->name('profile.edit');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Payment callbacks
+Route::get('/payment/vnpay/return', [PaymentController::class, 'vnpayReturn'])->name('payment.vnpay.return');
+Route::get('/payment/momo/return', [PaymentController::class, 'momoReturn'])->name('payment.momo.return');
+Route::post('/payment/momo/notify', [PaymentController::class, 'momoNotify'])->name('payment.momo.notify')
+     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
 require __DIR__.'/auth.php';

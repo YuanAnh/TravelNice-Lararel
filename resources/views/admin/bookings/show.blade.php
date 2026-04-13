@@ -70,7 +70,7 @@
             @php $tour = $booking->tourSlot->tour ?? null; @endphp
             @if($tour)
             <div class="d-flex gap-3 mb-3">
-                <img src="{{ $tour->thumbnail ?? 'https://placehold.co/80x60/0066CC/white?text=Tour' }}"
+                <img src="{{ $tour->thumbnail ? asset('storage/'.$tour->thumbnail) : 'https://placehold.co/80x60/0066CC/white?text=Tour' }}"
                      style="width:80px;height:60px;object-fit:cover;border-radius:8px">
                 <div>
                     <div class="fw-700" style="font-size:15px">{{ $tour->title }}</div>
