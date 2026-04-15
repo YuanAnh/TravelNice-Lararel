@@ -182,6 +182,53 @@
             <i class="bi bi-check-circle"></i>{{ session('success') }}
         </div>
         @endif
+
+        {{-- Notification Bell --}}
+        @php $paidCount = \App\Models\Booking::where('status','paid')->count(); @endphp
+        <div class="dropdown">
+            <button class="btn position-relative p-2" data-bs-toggle="dropdown" style="background:none;border:none">
+                <i class="bi bi-bell" style="font-size:20px;color:#6B7280"></i>
+                @if($paidCount > 0)
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                      style="background:#DC2626;font-size:10px;padding:3px 5px">
+                    {{ $paidCount }}
+                </span>
+                @endif
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" style="border-radius:12px;min-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.12);border:none">
+                <li class="px-3 py-2 border-bottom">
+                    <div style="font-size:13px;font-weight:700">Thông báo</div>
+                </li>
+                @if($paidCount > 0)
+                <li>
+                    <a class="dropdown-item py-3" href="{{ route('admin.bookings.index', ['status'=>'paid']) }}"
+                       style="white-space:normal">
+                        <div class="d-flex gap-3 align-items-center">
+                            <div style="width:36px;height:36px;border-radius:50%;background:#DBEAFE;color:#2563EB;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                <i class="bi bi-credit-card-fill"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:13px;font-weight:600">{{ $paidCount }} đơn chờ xác nhận</div>
+                                <div style="font-size:12px;color:#9CA3AF">Khách đã thanh toán, cần xác nhận</div>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                @else
+                <li class="text-center py-4" style="font-size:13px;color:#9CA3AF">
+                    <i class="bi bi-check-circle d-block mb-2 fs-4 text-success"></i>
+                    Không có thông báo mới
+                </li>
+                @endif
+                <li class="border-top">
+                    <a class="dropdown-item text-center py-2" href="{{ route('admin.bookings.index') }}"
+                       style="font-size:13px;color:#0066CC">
+                        Xem tất cả đơn đặt →
+                    </a>
+                </li>
+            </ul>
+        </div>
+
         <div class="dropdown">
             <div class="admin-avatar" data-bs-toggle="dropdown">
                 {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}

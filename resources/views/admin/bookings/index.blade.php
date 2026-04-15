@@ -6,6 +6,16 @@
 
 @section('content')
 
+@if(isset($stats['paid']) && $stats['paid'] > 0)
+<div class="alert d-flex align-items-center gap-3 mb-4"
+     style="background:#DBEAFE;border:1px solid #93C5FD;border-radius:10px;font-size:13px">
+    <i class="bi bi-bell-fill text-primary fs-5"></i>
+    <div>
+        <strong>{{ $stats['paid'] }} đơn đã thanh toán</strong> đang chờ xác nhận!
+        <a href="{{ route('admin.bookings.index', ['status'=>'paid']) }}" class="fw-600 ms-2">Xem ngay →</a>
+    </div>
+</div>
+@endif
 {{-- Stats row --}}
 <div class="row g-3 mb-4">
     @foreach([
@@ -116,6 +126,22 @@
                     </td>
                     <td>
                         <div class="d-flex gap-1">
+                            @if(in_array($b->status, ['pending','paid']))
+                            <form method="POST" action="{{ route('admin.bookings.confirm', $b) }}">
+                                @csrf @method('PATCH')
+                                <button class="btn-action" style="background:#D1FAE5;color:#065F46" title="Xác nhận">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
+                            @endif
+                            @if($b->status === 'confirmed')
+                            <form method="POST" action="{{ route('admin.bookings.complete', $b) }}">
+                                @csrf @method('PATCH')
+                                <button class="btn-action" style="background:#E0E7FF;color:#3730A3" title="Hoàn thành">
+                                    <i class="bi bi-trophy"></i>
+                                </button>
+                            </form>
+                            @endif
                             <a href="{{ route('admin.bookings.show', $b) }}" class="btn-action btn-action-view" title="Chi tiết">
                                 <i class="bi bi-eye"></i>
                             </a>

@@ -7,7 +7,11 @@
             </div>
             <div class="booking-meta mt-1">
                 <span><i class="bi bi-calendar3"></i> {{ $booking->tourSlot->departure_date?->format('d/m/Y') ?? '—' }}</span>
-                <span><i class="bi bi-people"></i> {{ $booking->num_adults }} người lớn@if($booking->num_children > 0), {{ $booking->num_children }} trẻ em@endif</span>
+                <span><i class="bi bi-people"></i> {{ $booking->num_adults }} người lớn
+                    @if($booking->num_children > 0)
+                    , {{ $booking->num_children }} trẻ em
+                    @endif
+                </span>
                 <span><i class="bi bi-clock"></i> {{ $booking->created_at->format('d/m/Y H:i') }}</span>
             </div>
         </div>
@@ -21,7 +25,7 @@
                     @case('completed') Hoàn thành @break
                 @endswitch
             </span>
-            <div class="booking-price mt-2">{{ number_format($booking->total_price,0,',','.') }}đ</div>
+            <div class="booking-price mt-2">{{ number_format($booking->netTotal(),0,',','.') }}đ</div>
             <div class="d-flex gap-1 justify-content-end mt-2">
                 @if($booking->isPending())
                 <a href="{{ route('payment.select', $booking) }}" class="btn btn-sm btn-warning rounded-pill" style="font-size:12px">

@@ -29,7 +29,7 @@ class VNPayService
             'vnp_Version'    => '2.1.0',
             'vnp_Command'    => 'pay',
             'vnp_TmnCode'    => $this->tmnCode,
-            'vnp_Amount'     => (int)($booking->total_price * 100), // VNPay tính theo đồng × 100
+            'vnp_Amount'     => (int)($booking->netTotal() * 100), 
             'vnp_CurrCode'   => 'VND',
             'vnp_TxnRef'     => $booking->booking_code . '_' . time(),
             'vnp_OrderInfo'  => 'Thanh toan booking ' . $booking->booking_code,

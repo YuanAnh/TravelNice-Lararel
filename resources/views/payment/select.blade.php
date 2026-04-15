@@ -64,7 +64,7 @@
             @endif
             <div class="total-row">
                 <span>Tổng thanh toán</span>
-                <span>{{ number_format($booking->total_price - $booking->discount_amount,0,',','.') }}đ</span>
+                <span>{{ number_format($booking->netTotal(),0,',','.') }}đ</span>
             </div>
         </div>
 

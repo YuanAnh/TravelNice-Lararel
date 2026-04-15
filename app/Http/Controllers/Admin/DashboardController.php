@@ -15,6 +15,7 @@ class DashboardController extends Controller
         $activeTours       = Tour::where('status', 'active')->count();
         $totalBookings     = Booking::count();
         $pendingBookings   = Booking::where('status', 'pending')->count();
+        $paidBookings      = Booking::where('status', 'paid')->count(); // cần xác nhận
         $totalUsers        = User::count();
         $newUsersThisMonth = User::whereMonth('created_at', now()->month)
                                  ->whereYear('created_at', now()->year)->count();
@@ -32,7 +33,7 @@ class DashboardController extends Controller
         $bookingStats = Booking::selectRaw('status, count(*) as count')->groupBy('status')->get();
 
         return view('admin.dashboard', compact(
-            'totalTours','activeTours','totalBookings','pendingBookings',
+            'totalTours','activeTours','totalBookings','pendingBookings','paidBookings',
             'totalUsers','newUsersThisMonth','totalRevenue','monthRevenue',
             'recentBookings','topTours','bookingStats'
         ));

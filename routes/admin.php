@@ -20,6 +20,8 @@ Route::prefix('admin')
         // Bookings
         Route::resource('bookings', BookingController::class)
              ->only(['index', 'show', 'edit', 'update', 'destroy']);
+          Route::patch('bookings/{booking}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
+          Route::patch('bookings/{booking}/complete', [BookingController::class, 'complete'])->name('bookings.complete');
 
         // Users
         Route::resource('users', UserController::class)

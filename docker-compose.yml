@@ -12,6 +12,13 @@ services:
       - db
       - redis
 
+  mailhog:
+    image: mailhog/mailhog
+    container_name: travelnice-mailhog
+    ports:
+      - "1025:1025"  
+      - "8025:8025"   
+
   nginx:
     image: nginx:alpine
     container_name: travelnice-nginx

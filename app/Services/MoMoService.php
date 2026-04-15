@@ -31,7 +31,7 @@ class MoMoService
     {
         $orderId    = $booking->booking_code . '_' . time();
         $requestId  = Str::uuid()->toString();
-        $amount     = (int) $booking->total_price;
+        $amount     = (int) $booking->netTotal();
         $orderInfo  = 'Thanh toan booking ' . $booking->booking_code;
         $requestType = config('payment.momo.request_type');
         $extraData  = base64_encode(json_encode(['booking_code' => $booking->booking_code]));

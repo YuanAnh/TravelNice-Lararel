@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Models\User;
+use App\Mail\NewBookingPaid;
 use App\Services\VNPayService;
 use App\Services\MoMoService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class PaymentController extends Controller
 {
@@ -15,59 +18,32 @@ class PaymentController extends Controller
         private MoMoService  $momo,
     ) {}
 
-    /**
-     * Trang chọn phương thức thanh toán
-     */
     public function select(Booking $booking)
     {
-        // Chỉ cho phép thanh toán đơn pending
         if (!$booking->isPending()) {
-            return redirect()->route('profile.index')
-                ->with('error', 'Đơn này không thể thanh toán.');
+            return redirect()->route('profile.index')->with('error', 'Đơn này không thể thanh toán.');
         }
-
-        // Chỉ user sở hữu mới được thanh toán
-        if ($booking->user_id !== auth()->id()) {
-            abort(403);
-        }
-
+        if ($booking->user_id !== auth()->id()) abort(403);
         return view('payment.select', compact('booking'));
     }
 
-    /**
-     * Redirect sang VNPay
-     */
     public function payVNPay(Booking $booking)
     {
-        if ($booking->user_id !== auth()->id() || !$booking->isPending()) {
-            abort(403);
-        }
-
+        if ($booking->user_id !== auth()->id() || !$booking->isPending()) abort(403);
         $url = $this->vnpay->createPaymentUrl($booking);
         return redirect($url);
     }
 
-    /**
-     * Redirect sang MoMo
-     */
     public function payMoMo(Booking $booking)
     {
-        if ($booking->user_id !== auth()->id() || !$booking->isPending()) {
-            abort(403);
-        }
-
+        if ($booking->user_id !== auth()->id() || !$booking->isPending()) abort(403);
         $url = $this->momo->createPaymentUrl($booking);
-
         if (!$url) {
             return redirect()->back()->with('error', 'Không thể kết nối MoMo. Vui lòng thử lại.');
         }
-
         return redirect($url);
     }
 
-    /**
-     * VNPay callback (return URL)
-     */
     public function vnpayReturn(Request $request)
     {
         if (!$this->vnpay->verifyReturn($request)) {
@@ -76,79 +52,50 @@ class PaymentController extends Controller
 
         $responseCode = $request->get('vnp_ResponseCode');
         $bookingCode  = $this->vnpay->getBookingCode($request->get('vnp_TxnRef'));
-        $booking      = Booking::where('booking_code', $bookingCode)->first();
+        $booking      = Booking::with(['user','tourSlot.tour','payment'])->where('booking_code', $bookingCode)->first();
 
         if ($responseCode === '00' && $booking) {
             $this->markPaid($booking, 'vnpay', $request->get('vnp_TransactionNo'), $request->get('vnp_Amount') / 100);
-            return view('payment.result', [
-                'success' => true,
-                'booking' => $booking,
-                'message' => 'Thanh toán VNPay thành công!',
-            ]);
+            return view('payment.result', ['success' => true, 'booking' => $booking, 'message' => 'Thanh toán VNPay thành công!']);
         }
 
-        return view('payment.result', [
-            'success' => false,
-            'booking' => $booking,
-            'message' => 'Thanh toán thất bại! Mã lỗi: ' . $responseCode,
-        ]);
+        return view('payment.result', ['success' => false, 'booking' => $booking, 'message' => 'Thanh toán thất bại! Mã lỗi: ' . $responseCode]);
     }
 
-    /**
-     * MoMo return URL
-     */
     public function momoReturn(Request $request)
     {
-        $data = $request->all();
-
+        $data    = $request->all();
         if (!$this->momo->verifyReturn($data)) {
             return view('payment.result', ['success' => false, 'message' => 'Chữ ký không hợp lệ!']);
         }
 
         $bookingCode = $this->momo->getBookingCode($data['orderId']);
-        $booking     = Booking::where('booking_code', $bookingCode)->first();
+        $booking     = Booking::with(['user','tourSlot.tour','payment'])->where('booking_code', $bookingCode)->first();
 
         if ($data['resultCode'] === 0 && $booking) {
             $this->markPaid($booking, 'momo', $data['transId'], $data['amount']);
-            return view('payment.result', [
-                'success' => true,
-                'booking' => $booking,
-                'message' => 'Thanh toán MoMo thành công!',
-            ]);
+            return view('payment.result', ['success' => true, 'booking' => $booking, 'message' => 'Thanh toán MoMo thành công!']);
         }
 
-        return view('payment.result', [
-            'success' => false,
-            'booking' => $booking,
-            'message' => 'Thanh toán thất bại! ' . ($data['message'] ?? ''),
-        ]);
+        return view('payment.result', ['success' => false, 'booking' => $booking, 'message' => 'Thanh toán thất bại! ' . ($data['message'] ?? '')]);
     }
 
-    /**
-     * MoMo IPN (server-to-server notify)
-     */
     public function momoNotify(Request $request)
     {
         $data = $request->all();
-
         if (!$this->momo->verifyReturn($data)) {
             return response()->json(['message' => 'invalid signature'], 400);
         }
-
         if ($data['resultCode'] === 0) {
             $bookingCode = $this->momo->getBookingCode($data['orderId']);
-            $booking     = Booking::where('booking_code', $bookingCode)->first();
+            $booking     = Booking::with(['user','tourSlot.tour','payment'])->where('booking_code', $bookingCode)->first();
             if ($booking && $booking->isPending()) {
                 $this->markPaid($booking, 'momo', $data['transId'], $data['amount']);
             }
         }
-
         return response()->json(['message' => 'ok']);
     }
 
-    /**
-     * Đánh dấu booking đã thanh toán và tạo payment record
-     */
     private function markPaid(Booking $booking, string $gateway, string $transactionId, float $amount): void
     {
         if (!$booking->isPending()) return;
@@ -159,9 +106,35 @@ class PaymentController extends Controller
             'booking_id'     => $booking->id,
             'gateway'        => $gateway,
             'transaction_id' => $transactionId,
-            'amount'         => $amount,
+            'amount'         => $booking->netTotal(),
             'status'         => 'success',
             'paid_at'        => now(),
         ]);
+
+        // Reload relationships
+        $booking->load(['user', 'tourSlot.tour', 'payment']);
+
+        // Gửi email thông báo cho tất cả admin
+        $this->notifyAdmins($booking);
+    }
+
+    private function notifyAdmins(Booking $booking): void
+    {
+        try {
+            $adminEmail = config('mail.admin_email', env('MAIL_ADMIN', 'admin@travelnice.vn'));
+
+            // Gửi cho admin chính
+            Mail::to($adminEmail)->send(new NewBookingPaid($booking));
+
+            // Gửi cho tất cả user có role admin
+            User::role('admin')->each(function ($admin) use ($booking) {
+                if ($admin->email !== config('mail.admin_email')) {
+                    Mail::to($admin->email)->send(new NewBookingPaid($booking));
+                }
+            });
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to send admin notification: ' . $e->getMessage());
+        }
     }
 }

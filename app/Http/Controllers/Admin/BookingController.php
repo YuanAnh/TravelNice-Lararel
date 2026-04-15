@@ -72,6 +72,17 @@ class BookingController extends Controller
         return redirect()->route('admin.bookings.show', $booking)
                          ->with('success', 'Cập nhật booking thành công!');
     }
+    public function confirm(Booking $booking)
+    {
+        $booking->update(['status' => 'confirmed']);
+        return redirect()->back()->with('success', "Đã xác nhận đơn #{$booking->booking_code}!");
+    }
+
+    public function complete(Booking $booking)
+    {
+        $booking->update(['status' => 'completed']);
+        return redirect()->back()->with('success', "Đơn #{$booking->booking_code} đã hoàn thành!");
+    }
 
     public function destroy(Booking $booking)
     {
