@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\TourController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ReviewController;
 
 Route::prefix('admin')
     ->name('admin.')
@@ -28,4 +29,9 @@ Route::prefix('admin')
              ->only(['index', 'show', 'edit', 'update', 'destroy']);
         Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])
              ->name('users.toggle-status');
+
+          // Reviews
+          Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+          Route::patch('reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
+          Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
     });

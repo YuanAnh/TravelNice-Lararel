@@ -156,6 +156,13 @@
     <a href="{{ route('admin.users.index') }}" class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
         <i class="bi bi-people"></i> Người dùng
     </a>
+    <a href="{{ route('admin.reviews.index') }}" class="sidebar-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
+        <i class="bi bi-star"></i> Đánh giá
+        @php $pendingReviews = \App\Models\Review::where('is_approved', 0)->count(); @endphp
+        @if($pendingReviews > 0)
+        <span class="badge ms-auto" style="background:#DC2626;font-size:10px;padding:2px 6px;border-radius:10px">{{ $pendingReviews }}</span>
+        @endif
+    </a>
 
     <div class="sidebar-footer">
         <a href="{{ url('/') }}" class="sidebar-link" target="_blank">
