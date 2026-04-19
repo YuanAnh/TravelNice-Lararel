@@ -3,7 +3,7 @@
 @section('content')
 
 {{-- HERO --}}
-<section class="tn-hero">
+<section class="tn-hero" >
     <div class="container">
         <div class="text-center mb-4">
             <h1 class="mb-2">Khám phá thế giới cùng TravelNice</h1>
@@ -70,7 +70,6 @@
     </svg>
     </div>
 </section>
-
 {{-- PROMO --}}
 <section class="py-4">
     <div class="container">

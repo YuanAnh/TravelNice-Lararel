@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tour;
 use App\Models\TourCategory;
+use App\Models\Banner;
 
 class HomeController extends Controller
 {
@@ -17,10 +18,12 @@ class HomeController extends Controller
 
         $categories = TourCategory::orderBy('name')->get();
 
+        $banners = Banner::active()->get();
+
         if (auth()->check()) {
         auth()->user()->load('wishlistedTours');
         }
 
-        return view('home', compact('featuredTours', 'categories'));
+        return view('home', compact('featuredTours', 'categories', 'banners'));
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Tour;
 use App\Models\TourSchedule;
 use App\Models\Destination;
 use App\Models\TourCategory;
+use App\Models\AdminLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -16,14 +17,8 @@ class TourController extends Controller
     public function index(Request $request)
     {
         $query = Tour::with(['destination', 'category'])->latest();
-
-        if ($q = $request->q) {
-            $query->where('title', 'like', "%$q%");
-        }
-        if ($status = $request->status) {
-            $query->where('status', $status);
-        }
-
+        if ($q = $request->q) $query->where('title', 'like', "%$q%");
+        if ($status = $request->status) $query->where('status', $status);
         $tours = $query->paginate(15);
         return view('admin.tours.index', compact('tours'));
     }
@@ -57,6 +52,8 @@ class TourController extends Controller
 
         $tour = Tour::create($data);
         $this->saveSchedules($tour, $request->schedules ?? []);
+
+        AdminLog::log('create', "Tạo tour: {$tour->title}", $tour->id, 'Tour');
 
         return redirect()->route('admin.tours.index')->with('success', 'Tạo tour thành công!');
     }
@@ -93,11 +90,14 @@ class TourController extends Controller
         $tour->schedules()->delete();
         $this->saveSchedules($tour, $request->schedules ?? []);
 
+        AdminLog::log('update', "Cập nhật tour: {$tour->title}", $tour->id, 'Tour');
+
         return redirect()->route('admin.tours.index')->with('success', 'Cập nhật tour thành công!');
     }
 
     public function destroy(Tour $tour)
     {
+        AdminLog::log('delete', "Xoá tour: {$tour->title}", $tour->id, 'Tour');
         if ($tour->thumbnail) Storage::disk('public')->delete($tour->thumbnail);
         $tour->delete();
         return redirect()->route('admin.tours.index')->with('success', 'Đã xoá tour!');
@@ -118,8 +118,7 @@ class TourController extends Controller
 
     private function uniqueSlug(string $slug, ?int $ignoreId = null): string
     {
-        $original = $slug;
-        $i = 1;
+        $original = $slug; $i = 1;
         while (Tour::where('slug', $slug)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
             $slug = $original . '-' . $i++;
         }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\AdminLog;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -24,21 +25,20 @@ class BookingController extends Controller
             $query->where('status', $status);
         }
 
-        $bookings = $query->paginate(20);
+        $bookings       = $query->paginate(20);
+        $pendingCount   = Booking::where('status', 'pending')->count();
+        $paidCount      = Booking::where('status', 'paid')->count();
+        $confirmedCount = Booking::where('status', 'confirmed')->count();
+        $cancelledCount = Booking::where('status', 'cancelled')->count();
 
-        $stats = [
-            'pending'   => Booking::where('status', 'pending')->count(),
-            'confirmed' => Booking::where('status', 'confirmed')->count(),
-            'paid'      => Booking::where('status', 'paid')->count(),
-            'cancelled' => Booking::where('status', 'cancelled')->count(),
-        ];
+        $stats = ['pending'=>$pendingCount,'confirmed'=>$confirmedCount,'paid'=>$paidCount,'cancelled'=>$cancelledCount];
 
-        return view('admin.bookings.index', compact('bookings', 'stats'));
+        return view('admin.bookings.index', compact('bookings','stats','paidCount','pendingCount','confirmedCount','cancelledCount'));
     }
 
     public function show(Booking $booking)
     {
-        $booking->load(['user', 'tourSlot.tour.destination']);
+        $booking->load(['user','tourSlot.tour.destination']);
         return view('admin.bookings.show', compact('booking'));
     }
 
@@ -56,36 +56,33 @@ class BookingController extends Controller
         ]);
 
         $data = ['status' => $request->status];
-
-        if ($request->filled('discount_amount')) {
-            $data['discount_amount'] = $request->discount_amount;
-        }
-        if ($request->filled('note')) {
-            $data['note'] = $request->note;
-        }
-        if ($request->status === 'cancelled' && !$booking->cancelled_at) {
-            $data['cancelled_at'] = now();
-        }
+        if ($request->filled('discount_amount')) $data['discount_amount'] = $request->discount_amount;
+        if ($request->filled('note')) $data['note'] = $request->note;
+        if ($request->status === 'cancelled' && !$booking->cancelled_at) $data['cancelled_at'] = now();
 
         $booking->update($data);
+        AdminLog::log('update', "Cập nhật đơn #{$booking->booking_code} → {$request->status}", $booking->id, 'Booking');
 
-        return redirect()->route('admin.bookings.show', $booking)
-                         ->with('success', 'Cập nhật booking thành công!');
+        return redirect()->route('admin.bookings.show', $booking)->with('success', 'Cập nhật booking thành công!');
     }
+
     public function confirm(Booking $booking)
     {
         $booking->update(['status' => 'confirmed']);
+        AdminLog::log('confirm', "Xác nhận đơn #{$booking->booking_code}", $booking->id, 'Booking');
         return redirect()->back()->with('success', "Đã xác nhận đơn #{$booking->booking_code}!");
     }
 
     public function complete(Booking $booking)
     {
         $booking->update(['status' => 'completed']);
+        AdminLog::log('update', "Hoàn thành đơn #{$booking->booking_code}", $booking->id, 'Booking');
         return redirect()->back()->with('success', "Đơn #{$booking->booking_code} đã hoàn thành!");
     }
 
     public function destroy(Booking $booking)
     {
+        AdminLog::log('delete', "Xoá đơn #{$booking->booking_code}", $booking->id, 'Booking');
         $booking->delete();
         return redirect()->route('admin.bookings.index')->with('success', 'Đã xoá booking!');
     }

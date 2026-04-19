@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminLog;
 use App\Models\Review;
 use Illuminate\Http\Request;
 
@@ -33,12 +34,15 @@ class ReviewController extends Controller
                      ->avg('rating');
         $review->tour->update(['avg_rating' => $avg ?? 0]);
 
+        AdminLog::log('update', "Duyệt đánh giá #{$review->id} của user: {$review->user->name} cho tour: {$review->tour->title}", $review->id, 'Review');
+
         return redirect()->back()->with('success', 'Đã duyệt đánh giá!');
     }
 
     public function destroy(Review $review)
     {
         $tourId = $review->tour_id;
+        AdminLog::log('delete', "Xoá đánh giá #{$review->id} của user: {$review->user->name} cho tour: {$review->tour->title}", $review->id, 'Review');
         $review->delete();
 
         $avg = Review::where('tour_id', $tourId)->where('is_approved', 1)->avg('rating');

@@ -164,6 +164,19 @@
         @endif
     </a>
 
+    <div class="sidebar-section">Nội dung</div>
+    <a href="{{ route('admin.banners.index') }}" class="sidebar-link {{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+        <i class="bi bi-images"></i> Banner trang chủ
+    </a>
+
+    <div class="sidebar-section">Hệ thống</div>
+    <a href="{{ route('admin.reports.index') }}" class="sidebar-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+        <i class="bi bi-bar-chart"></i> Báo cáo & Export
+    </a>
+    <a href="{{ route('admin.logs.index') }}" class="sidebar-link {{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
+        <i class="bi bi-journal-text"></i> Log hoạt động
+    </a>
+
     <div class="sidebar-footer">
         <a href="{{ url('/') }}" class="sidebar-link" target="_blank">
             <i class="bi bi-box-arrow-up-right"></i> Xem website
