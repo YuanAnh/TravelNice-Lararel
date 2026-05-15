@@ -1,0 +1,38 @@
+name: Laravel CI (Tự động kiểm thử)
+
+on:
+  push:
+    branches: [ "main", "feature/big-update" ]
+  pull_request:
+    branches: [ "main", "feature/big-update" ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Tải source code về server ảo
+        uses: actions/checkout@v4
+
+      - name: 🐘 Cài đặt PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2' # Trùng với phiên bản Laravel 11/12
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath
+
+      - name: 📦 Cài đặt thư viện (Composer)
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: ⚙️ Thiết lập môi trường ảo (.env)
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: 📂 Cấp quyền thư mục Cache
+        run: chmod -R 777 storage bootstrap/cache
+
+      - name: 🚀 CHẠY 43 BÀI TEST TỰ ĐỘNG
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+        run: php artisan test

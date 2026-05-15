@@ -191,7 +191,7 @@
                     <div class="tour-desc">{{ Str::limit($tour->description, 120) }}</div>
 
                     {{-- Slot gần nhất --}}
-                    @php $nextSlot = $tour->slots->where('status','open')->sortBy('departure_date')->first(); @endphp
+                    @php $nextSlot = $tour->slots->first(); @endphp
                     @if($nextSlot)
                     <div style="font-size:12px;color:var(--tn-muted);margin-top:6px">
                         <i class="bi bi-calendar3 text-primary me-1"></i>

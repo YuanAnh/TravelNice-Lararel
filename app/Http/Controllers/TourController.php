@@ -6,12 +6,13 @@ use App\Models\Tour;
 use App\Models\TourCategory;
 use App\Models\Destination;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class TourController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Tour::with(['destination', 'category', 'slots'])
+        $query = Tour::with(['destination', 'category', 'slots' => function($q){$q-> where('status','open')-> where('departure_date', '>=', now())->orderBy('departure_date');}])
             ->where('status', 'active');
 
         if ($q = $request->q) {
@@ -59,9 +60,17 @@ class TourController extends Controller
             default      => $query->orderByDesc('avg_rating'),
         };
 
-        $tours        = $query->paginate(10);
-        $categories   = TourCategory::withCount('tours')->get();
-        $destinations = Destination::orderBy('name')->get();
+        $cacheKey = 'tours_page_' . md5(serialize($request->all()));
+
+        $tours        = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($query) {
+            return $query->paginate(10);
+        });
+        $categories   = Cache::remember('categorise_with_counts', now()->addDay(), function () {
+            return TourCategory::withCount('tours')->get();
+        });
+        $destinations = Cache::remember('all_destinations', now()->addDay(), function () {
+            return Destination::orderBy('name')->get();
+        });
 
         if (auth()->check()) {
             auth()->user()->load('wishlistedTours');
