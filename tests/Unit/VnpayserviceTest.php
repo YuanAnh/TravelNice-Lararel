@@ -58,7 +58,7 @@ class VNPayServiceTest extends TestCase
             'vnp_SecureHash'   => 'invalidsignature',
         ]);
 
-        $result = $this->service->verifyReturn($request);
+        $result = $this->service->verifyReturn($request->all());
         $this->assertFalse($result);
     }
 }
