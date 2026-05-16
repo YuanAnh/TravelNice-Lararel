@@ -51,6 +51,8 @@ Route::middleware('auth')->group(function () {
 
 // Payment callbacks
 Route::get('/payment/vnpay/return', [PaymentController::class, 'vnpayReturn'])->name('payment.vnpay.return');
+Route::get('/payment/vnpay/ipn', [PaymentController::class, 'vnpayIpn'])->name('payment.vnpay.ipn'); 
+
 Route::get('/payment/momo/return', [PaymentController::class, 'momoReturn'])->name('payment.momo.return');
 Route::post('/payment/momo/notify', [PaymentController::class, 'momoNotify'])->name('payment.momo.notify')
      ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);

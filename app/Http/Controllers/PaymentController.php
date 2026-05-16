@@ -46,20 +46,41 @@ class PaymentController extends Controller
 
     public function vnpayReturn(Request $request)
     {
-        if (!$this->vnpay->verifyReturn($request)) {
-            return view('payment.result', ['success' => false, 'message' => 'Chữ ký không hợp lệ!']);
+        // Gọi thẳng vào Service, Service sẽ lo hết từ xác thực đến lưu Database
+        $result = $this->vnpay->handleReturn($request->all());
+
+        // Nếu thành công, Service đã load sẵn model $booking, ta chỉ việc bóc ra gửi email
+        if ($result['success'] && isset($result['booking'])) {
+            if ($result['booking']->wasChanged('status')) {
+                $this->notifyAdmins($result['booking']);
+                }
         }
 
-        $responseCode = $request->get('vnp_ResponseCode');
-        $bookingCode  = $this->vnpay->getBookingCode($request->get('vnp_TxnRef'));
-        $booking      = Booking::with(['user','tourSlot.tour','payment'])->where('booking_code', $bookingCode)->first();
+        return view('payment.result', [
+            'success' => $result['success'],
+            'booking' => $result['booking'] ?? null,
+            'message' => $result['message']
+        ]);
+    }
 
-        if ($responseCode === '00' && $booking) {
-            $this->markPaid($booking, 'vnpay', $request->get('vnp_TransactionNo'), $request->get('vnp_Amount') / 100);
-            return view('payment.result', ['success' => true, 'booking' => $booking, 'message' => 'Thanh toán VNPay thành công!']);
+    /**
+     * Luồng 2: Máy chủ VNPay gọi ngầm để xác nhận (IPN / Webhook)
+     */
+    public function vnpayIpn(Request $request)
+    {
+        // Trả về chuỗi JSON với RspCode chuẩn xác mà máy chủ VNPay yêu cầu
+        $response = $this->vnpay->handleIpn($request->all());
+        
+        // Nếu giao dịch thành công (00), ta gọi luồng gửi mail
+        if ($response['RspCode'] === '00') {
+            $bookingCode = $this->vnpay->getBookingCode($request->get('vnp_TxnRef'));
+            $booking = Booking::with(['user', 'tourSlot.tour', 'payment'])->where('booking_code', $bookingCode)->first();
+            if ($booking) {
+                $this->notifyAdmins($booking);
+            }
         }
 
-        return view('payment.result', ['success' => false, 'booking' => $booking, 'message' => 'Thanh toán thất bại! Mã lỗi: ' . $responseCode]);
+        return response()->json($response);
     }
 
     public function momoReturn(Request $request)
@@ -121,15 +142,13 @@ class PaymentController extends Controller
     private function notifyAdmins(Booking $booking): void
     {
         try {
-            $adminEmail = config('mail.admin_email', env('MAIL_ADMIN', 'admin@travelnice.vn'));
+            $primaryAdminEmail = env('MAIL_ADMIN', 'admin@travelnice.vn');
 
-            // Gửi cho admin chính
-            Mail::to($adminEmail)->send(new NewBookingPaid($booking));
+            Mail::to($primaryAdminEmail)->queue(new NewBookingPaid($booking));
 
-            // Gửi cho tất cả user có role admin
-            User::role('admin')->each(function ($admin) use ($booking) {
-                if ($admin->email !== config('mail.admin_email')) {
-                    Mail::to($admin->email)->send(new NewBookingPaid($booking));
+            User::role('admin')->each(function ($admin) use ($booking, $primaryAdminEmail) {
+                if ($admin->email !== $primaryAdminEmail) {
+                    Mail::to($admin->email)->queue(new NewBookingPaid($booking));
                 }
             });
 
