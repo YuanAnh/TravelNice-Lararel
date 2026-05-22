@@ -181,7 +181,7 @@ function appendMessage(role, text) {
     const msgs = document.getElementById('chatMessages');
     const div = document.createElement('div');
     div.className = 'msg ' + role;
-    div.textContent = text;
+    div.innerHTML = text;
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
     return div;

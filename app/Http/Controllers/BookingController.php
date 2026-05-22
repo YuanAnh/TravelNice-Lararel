@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\TourSlot;
 use App\Models\Tour;
+use App\Services\GeminiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -55,7 +57,7 @@ class BookingController extends Controller
                        + ($children * ($tour->price_child ?? 0));
 
                 // 6. Tạo booking
-                Booking::create([
+                $booking = Booking::create([
                     'user_id'      => auth()->id(),
                     'tour_slot_id' => $slot->id,
                     'num_adults'   => $adults,
@@ -64,6 +66,14 @@ class BookingController extends Controller
                     'note'         => $request->note,
                     'status'       => 'pending',
                 ]);
+
+                // 6b. Ghi nhận hành vi đặt tour cho AI behavior engine
+                if (Auth::check()) {
+                    app(GeminiService::class)->trackBooking(
+                        Auth::id(),
+                        $tour->id,
+                    );
+                }
 
                 // 7. Tăng booked_slots
                 $slot->increment('booked_slots', $requested);

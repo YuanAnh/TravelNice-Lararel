@@ -20,9 +20,14 @@ Route::get('/dashboard', function () {
 Route::get('/tours', [TourController::class, 'index'])->name('tours.index');
 Route::get('/tours/{tour:slug}', [TourController::class, 'show'])->name('tours.show');
 
-// AI (public)
-Route::post('/ai/chat', [AiController::class, 'chat'])->name('ai.chat');
-Route::match(['get','post'], '/ai/recommend', [AiController::class, 'recommend'])->name('ai.recommend');
+// AI (public) — throttle bảo vệ Gemini API quota
+Route::post('/ai/chat', [AiController::class, 'chat'])
+    ->middleware('throttle:30,1')
+    ->name('ai.chat');
+Route::match(['get','post'], '/ai/recommend', [AiController::class, 'recommend'])
+    ->middleware('throttle:10,1')
+    ->name('ai.recommend');
+Route::post('/ai/track', [AiController::class, 'track'])->name('ai.track');
 
 // Auth required
 Route::middleware('auth')->group(function () {

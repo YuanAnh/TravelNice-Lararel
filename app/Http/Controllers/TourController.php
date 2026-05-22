@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tour;
 use App\Models\TourCategory;
 use App\Models\Destination;
+use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -79,12 +80,18 @@ class TourController extends Controller
         return view('tours.index', compact('tours', 'categories', 'destinations'));
     }
 
-    public function show(Tour $tour)
+    public function show(Tour $tour, GeminiService $gemini)
     {
         $tour->load(['destination', 'category', 'images', 'schedules', 'slots', 'reviews.user']);
 
         if (auth()->check()) {
             auth()->user()->load('wishlistedTours');
+            // Track hành vi xem tour để cải thiện gợi ý AI
+            $gemini->trackTourView(
+                auth()->id(),
+                $tour->id,
+                $tour->destination->name ?? ''
+            );
         }
 
         return view('tours.show', compact('tour'));
