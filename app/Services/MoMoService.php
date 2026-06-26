@@ -104,6 +104,7 @@ class MoMoService
     private function callApi(array $body): ?array
     {
         try {
+            \Log::info('MoMo request: ', $body);
             $ch = curl_init($this->endpoint);
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
@@ -114,6 +115,7 @@ class MoMoService
                 CURLOPT_SSL_VERIFYPEER => false,
             ]);
             $result = curl_exec($ch);
+            \Log::info('MoMo response: ', ['raw' => $result]);
             curl_close($ch);
             return json_decode($result, true);
         } catch (\Exception $e) {

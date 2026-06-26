@@ -29,6 +29,14 @@ Route::match(['get','post'], '/ai/recommend', [AiController::class, 'recommend']
     ->name('ai.recommend');
 Route::post('/ai/track', [AiController::class, 'track'])->name('ai.track');
 
+// Payment callbacks
+Route::get('/payment/vnpay/return', [PaymentController::class, 'vnpayReturn'])->name('payment.vnpay.return');
+Route::get('/payment/vnpay/ipn', [PaymentController::class, 'vnpayIpn'])->name('payment.vnpay.ipn'); 
+
+Route::get('/payment/momo/return', [PaymentController::class, 'momoReturn'])->name('payment.momo.return');
+Route::post('/payment/momo/notify', [PaymentController::class, 'momoNotify'])->name('payment.momo.notify')
+     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+     
 // Auth required
 Route::middleware('auth')->group(function () {
     // Booking
@@ -53,13 +61,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', fn() => redirect()->route('profile.index'))->name('profile.edit');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-
-// Payment callbacks
-Route::get('/payment/vnpay/return', [PaymentController::class, 'vnpayReturn'])->name('payment.vnpay.return');
-Route::get('/payment/vnpay/ipn', [PaymentController::class, 'vnpayIpn'])->name('payment.vnpay.ipn'); 
-
-Route::get('/payment/momo/return', [PaymentController::class, 'momoReturn'])->name('payment.momo.return');
-Route::post('/payment/momo/notify', [PaymentController::class, 'momoNotify'])->name('payment.momo.notify')
-     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
 require __DIR__.'/auth.php';

@@ -93,7 +93,7 @@ class PaymentController extends Controller
         $bookingCode = $this->momo->getBookingCode($data['orderId']);
         $booking     = Booking::with(['user','tourSlot.tour','payment'])->where('booking_code', $bookingCode)->first();
 
-        if ($data['resultCode'] === 0 && $booking) {
+        if ((int)$data['resultCode'] === 0 && $booking && $booking->isPending()) {
             $this->markPaid($booking, 'momo', $data['transId'], $data['amount']);
             return view('payment.result', ['success' => true, 'booking' => $booking, 'message' => 'Thanh toán MoMo thành công!']);
         }
@@ -107,7 +107,7 @@ class PaymentController extends Controller
         if (!$this->momo->verifyReturn($data)) {
             return response()->json(['message' => 'invalid signature'], 400);
         }
-        if ($data['resultCode'] === 0) {
+        if ((int)$data['resultCode'] === 0) {
             $bookingCode = $this->momo->getBookingCode($data['orderId']);
             $booking     = Booking::with(['user','tourSlot.tour','payment'])->where('booking_code', $bookingCode)->first();
             if ($booking && $booking->isPending()) {
